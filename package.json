@@ -2,11 +2,14 @@
   "name": "cleartype",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "loupe": "^3.1.3"
+  }
 }

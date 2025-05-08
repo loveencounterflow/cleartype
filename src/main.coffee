@@ -1,10 +1,9 @@
 
 'use strict'
 
-GUY                       = require 'guy'
 { debug
-  help    }               = GUY.trm.get_loggers 'intertype/test-basics'
-{ rpr     }               = GUY.trm
+  help    }               = console
+rpr                       = ( x ) -> ( require 'loupe' ).inspect x
 
 
 ###

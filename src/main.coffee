@@ -4,7 +4,10 @@
 { debug
   help    }               = console
 rpr                       = ( x ) -> ( require 'loupe' ).inspect x
-
+{ TMP_typespace1
+  type_of
+  primitive_types
+  ct_kinds }              = require './builtins'
 
 ###
 
@@ -92,6 +95,9 @@ class Cleartype
   create: ( type, P... ) ->
     return @validate type, type.$create.call ( @_get_ctx type ), P...
 
+  #---------------------------------------------------------------------------------------------------------
+  type_of: type_of
+
 #===========================================================================================================
 ct = new Cleartype()
 
@@ -108,55 +114,6 @@ ct = new Cleartype()
 #   # #---------------------------------------------------------------------------------------------------------
 #   # $isa: ->
 #   # $create: ->
-
-
-#===========================================================================================================
-TMP_typespace1 =
-  anything:
-    $isa: ( x ) -> true
-    # $create: ( cfg ) ->
-  boolean:
-    $isa: ( x ) -> ( x is true ) or ( x is false )
-    # $create: ( cfg ) ->
-  function:
-    $isa: ( x ) -> ( Object::toString.call x ) is '[object Function]'
-    $create: -> ( -> null )
-  asyncfunction:
-    $isa: ( x ) -> ( Object::toString.call x ) is '[object AsyncFunction]'
-    $create: -> ( -> await null )
-  symbol:
-    $isa: ( x ) -> ( typeof x ) is 'symbol'
-    # $create: ( cfg ) ->
-  object:
-    $isa: ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
-    $create: ( cfg ) -> { cfg..., }
-  float:
-    $isa: ( x ) -> Number.isFinite x
-    $create: -> 0
-  text:
-    $isa: ( x ) -> ( typeof x ) is 'string'
-    $create: -> ''
-  nullary:
-    $isa: ( x ) -> x? and ( ( x.length is 0 ) or ( x.size is 0 ) )
-    # $create: ( cfg ) ->
-  unary:
-    $isa: ( x ) -> x? and ( ( x.length is 1 ) or ( x.size is 1 ) )
-    # $create: ( cfg ) ->
-  binary:
-    $isa: ( x ) -> x? and ( ( x.length is 2 ) or ( x.size is 2 ) )
-    # $create: ( cfg ) ->
-  trinary:
-    $isa: ( x ) -> x? and ( ( x.length is 3 ) or ( x.size is 3 ) )
-    # $create: ( cfg ) ->
-  set:
-    $isa: ( x ) -> x instanceof Set
-    $create: ( cfg ) -> new Set cfg ? []
-  map:
-    $isa: ( x ) -> x instanceof Map
-    $create: ( cfg ) -> new Map cfg ? []
-  list:
-    $isa: ( x ) -> Array.isArray x
-    $create: ( cfg ) -> ( x for x from cfg ? [] )
 
 
 #===========================================================================================================

@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "",
+  "sourceRoot": "",
+  "sources": [
+    "../src/helpers.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA;AAAA,MAAA,qBAAA,EAAA,KAAA,EAAA,IAAA,EAAA,IAAA,EAAA,GAAA;;;;;;EAMA,IAAA,GAAO,CAAE,MAAF,EAAU,IAAV,EAAgB,KAAhB,CAAA,GAAA;WAA2B,MAAM,CAAC,cAAP,CAAsB,MAAtB,EAA8B,IAA9B,EAC9B;MAAA,UAAA,EAAc,KAAd;MACA,QAAA,EAAc,IADd;MAEA,YAAA,EAAc,IAFd;MAGA,KAAA,EAAc;IAHd,CAD8B;EAA3B,EANP;;;EAaA,qBAAA,GAAwB,QAAA,CAAE,QAAF,CAAA;AACxB,QAAA,YAAA,EAAA,GAAA,EAAA,MAAA,EAAA;IAAE,YAAA,GAAe,CAAE,OAAA,CAAQ,YAAR,CAAF,CAAwB,CAAC,cAAc,CAAC,QAAQ,CAAC;AAChE;IAAA,KAAA,UAAA;OAAS;QAAE,KAAA,EAAO;MAAT;MACP,KAAgB,YAAA,CAAa,MAAb,CAAhB;AAAA,iBAAA;;MACA,IAAA,CAAK,QAAL,EAAe,GAAf,EAAoB,MAAM,CAAC,IAAP,CAAY,QAAZ,CAApB;IAFF;AAGA,WAAO;EALe,EAbxB;;;EAqBA,KAAA,GAAU,OAAO,CAAC;;EAClB,IAAA,GAAU,OAAO,CAAC;;EAClB,GAAA,GAAU,QAAA,CAAE,CAAF,CAAA;WAAS,CAAE,OAAA,CAAQ,OAAR,CAAF,CAAmB,CAAC,OAApB,CAA4B,CAA5B;EAAT,EAvBV;;;EA0BA,MAAM,CAAC,OAAP,GAAiB,CACf,IADe,EAEf,qBAFe,EAGf,KAHe,EAIf,IAJe,EAKf,GALe;AA1BjB",
+  "sourcesContent": [
+    "\n'use strict'\n\n# #===========================================================================================================\n# @bind_proto = ( that, f ) -> that::[ f.name ] = f.bind that::\n\n#===========================================================================================================\nhide = ( object, name, value ) => Object.defineProperty object, name,\n    enumerable:   false\n    writable:     true\n    configurable: true\n    value:        value\n\n#===========================================================================================================\nbind_instance_methods = ( instance ) ->\n  isa_function = ( require './builtins' ).TMP_typespace1.function.$isa\n  for key, { value: method, } of Object.getOwnPropertyDescriptors Object.getPrototypeOf instance\n    continue unless isa_function method\n    hide instance, key, method.bind instance\n  return null\n\n#===========================================================================================================\ndebug   = console.debug\nhelp    = console.help\nrpr     = ( x ) -> ( require 'loupe' ).inspect x\n\n#===========================================================================================================\nmodule.exports = {\n  hide\n  bind_instance_methods\n  debug\n  help\n  rpr }\n"
+  ]
+}

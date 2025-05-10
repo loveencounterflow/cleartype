@@ -1,13 +1,15 @@
 
 'use strict'
 
-{ debug
-  help    }               = console
-rpr                       = ( x ) -> ( require 'loupe' ).inspect x
 { TMP_typespace1
   type_of
   primitive_types
   ct_kinds }              = require './builtins'
+{ hide
+  bind_instance_methods
+  debug
+  help
+  rpr                   } = require './helpers'
 
 ###
 

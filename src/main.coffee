@@ -84,12 +84,12 @@ class Cleartype
   #---------------------------------------------------------------------------------------------------------
   validate: ( type, x ) ->
     return x if @isa type, x
-    throw new Cleartype_validation_error "Ωpmi___1 validation error\n#{rpr type}\n#{rpr x}"
+    throw new Cleartype_validation_error "Ωcleartype___1 validation error\n#{rpr type}\n#{rpr x}"
 
   #---------------------------------------------------------------------------------------------------------
   validate_optional: ( type, x ) ->
     return x if @isa_optional type, x
-    throw new Cleartype_validation_error "Ωpmi___2 validation error\n#{rpr type}\n#{rpr x}"
+    throw new Cleartype_validation_error "Ωcleartype___2 validation error\n#{rpr type}\n#{rpr x}"
 
   #---------------------------------------------------------------------------------------------------------
   create: ( type, P... ) ->

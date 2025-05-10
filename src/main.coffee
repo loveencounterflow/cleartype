@@ -6,6 +6,7 @@
   primitive_types
   ct_kinds }              = require './builtins'
 { hide
+  get_instance_methods
   bind_instance_methods
   debug
   help
@@ -120,4 +121,4 @@ ct = new Cleartype()
 
 
 #===========================================================================================================
-module.exports = { Cleartype, ct, TMP_typespace1, }
+module.exports = { Cleartype, TMP_typespace1, ( get_instance_methods new Cleartype() )..., }

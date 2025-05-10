@@ -121,4 +121,6 @@ ct = new Cleartype()
 
 
 #===========================================================================================================
-module.exports = { Cleartype, TMP_typespace1, ( get_instance_methods new Cleartype() )..., }
+do =>
+  CT              = new Cleartype()
+  module.exports  = { Cleartype, TMP_typespace1, CT, ( get_instance_methods CT )..., }

@@ -11,6 +11,7 @@
 
 - [ClearType](#cleartype)
   - [To Do](#to-do)
+  - [Is Done](#is-done)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -21,9 +22,12 @@
 
 ## To Do
 
-* **`[—]`** everything
+* **`[—]`** put typespaces in `builtins` into object `typespaces`?
 
-<!-- ## Is Done -->
+## Is Done
+
+* **`[+]`** rename `TMP_typespace1` to `std`
+* **`[+]`** rename `ctx.types` to `ctx.ct` to mirror name `CT` of the default `Cleartype` instance
 
 <!-- ## Don't -->
 

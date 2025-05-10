@@ -23,7 +23,7 @@ std =
     $create:      -> ( -> await null )
   symbol:
     $isa:         ( x ) -> ( typeof x ) is 'symbol'
-    $create:      ( P... ) -> Symbol @types.create std.text, P...
+    $create:      ( P... ) -> Symbol @ct.create std.text, P...
   object:
     $isa:         ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
     $create:      ( cfg ) -> { cfg..., }

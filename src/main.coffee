@@ -75,7 +75,7 @@ class Cleartype
   #---------------------------------------------------------------------------------------------------------
   _get_ctx: ( type ) ->
     return ( R = @_contexts.get type ) if R?
-    @_contexts.set type, R = Object.freeze { me: type, types: @, }
+    @_contexts.set type, R = Object.freeze { me: type, ct: @, }
     return R
 
   #---------------------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 
 'use strict'
 
-{ TMP_typespace1
+{ std
   type_of
   primitive_types
   ct_kinds }              = require './builtins'
@@ -123,4 +123,4 @@ ct = new Cleartype()
 #===========================================================================================================
 do =>
   CT              = new Cleartype()
-  module.exports  = { Cleartype, TMP_typespace1, CT, ( get_instance_methods CT )..., }
+  module.exports  = { Cleartype, std, CT, ( get_instance_methods CT )..., }

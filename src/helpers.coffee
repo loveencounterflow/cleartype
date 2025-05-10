@@ -13,7 +13,7 @@ hide = ( object, name, value ) => Object.defineProperty object, name,
 
 #===========================================================================================================
 get_instance_methods = ( instance ) ->
-  isa_function  = ( require './builtins' ).TMP_typespace1.function.$isa
+  isa_function  = ( require './builtins' ).std.function.$isa
   R             = {}
   for key, { value: method, } of Object.getOwnPropertyDescriptors instance
     continue if key is 'constructor'

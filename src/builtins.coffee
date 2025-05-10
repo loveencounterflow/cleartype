@@ -8,7 +8,7 @@ ct_kinds        = Object.freeze [ '$unspecified', '$enumeration', '$record', '$v
 
 
 #===========================================================================================================
-TMP_typespace1 =
+std =
   anything:
     $isa:         ( x ) -> true
   primitive:
@@ -23,7 +23,7 @@ TMP_typespace1 =
     $create:      -> ( -> await null )
   symbol:
     $isa:         ( x ) -> ( typeof x ) is 'symbol'
-    $create:      ( P... ) -> Symbol @types.create TMP_typespace1.text, P...
+    $create:      ( P... ) -> Symbol @types.create std.text, P...
   object:
     $isa:         ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
     $create:      ( cfg ) -> { cfg..., }
@@ -91,4 +91,4 @@ type_of = ( x ) ->
 
 
 #===========================================================================================================
-module.exports = { TMP_typespace1, type_of, primitive_types, ct_kinds, }
+module.exports = { std, type_of, primitive_types, ct_kinds, }

@@ -67,7 +67,8 @@ class Cleartype
 
   #---------------------------------------------------------------------------------------------------------
   constructor: ->
-    @_contexts = if false then new WeakMap() else new Map ### TAINT this is going to be configurable for testing ###
+    hide @, "_contexts", if false then new WeakMap() else new Map ### TAINT this is going to be configurable for testing ###
+    bind_instance_methods @
     return undefined
 
   #---------------------------------------------------------------------------------------------------------

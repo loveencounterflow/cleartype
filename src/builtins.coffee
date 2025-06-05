@@ -82,8 +82,9 @@ type_of = ( x ) ->
   #.........................................................................................................
   return 'list'         if Array.isArray  x
   ### TAINT consider to return x.constructor.name ###
-  millertype = Object::toString.call x
-  return ( millertype.replace /^\[object ([^\]]+)\]$/, '$1' ).toLowerCase()
+  switch millertype = ( ( Object::toString.call x ).replace /^\[object ([^\]]+)\]$/, '$1' ).toLowerCase()
+    when 'regexp'                       then return 'regex'
+  return millertype
   # switch millertype = Object::toString.call x
   #   when '[object Function]'            then return 'function'
   #   when '[object AsyncFunction]'       then return 'asyncfunction'

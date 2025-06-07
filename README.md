@@ -29,6 +29,10 @@
   ..., cfg_m ) ->` is understood as `f:( { p_0, }, { p_1, }, ..., { p_n, }, cfg_0, cfg_1, ..., cfg_m )` and
   then resolved as `cfg = { { p_0, }..., { p_1, }..., ..., { p_n, }..., cfg_0..., cfg_1..., ..., cfg_m...,
   }`
+* **`[—]`** better validation error messages
+* **`[—]`** consider using `Object.create null` for templates
+* **`[—]`** consider using properties for function properties of templates
+
 
 ## Is Done
 

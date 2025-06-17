@@ -41,23 +41,14 @@ class Type
       switch true
         when dcl.isa instanceof @constructor
           per_se_isa = do ( isa = dcl.isa.isa ) -> ( x ) -> isa x
-        when ( Object::toString.call dcl.isa ) is '[object Function]'
+        when gnd.function.isa dcl.isa
           per_se_isa = dcl.isa
         else throw new Error 'Ω___3'
     #.......................................................................................................
     ### TAINT decomplect logic ###
     else
       if has_fields
-        per_se_isa = ( x ) ->
-          return false unless x?
-          return false unless x.constructor in [ Object, undefined, ] ### stad.pod.isa x ###
-          for field_name, subtype of dcl.fields
-            continue if subtype.isa x[ field_name ]
-            ### TAINT use type_of ###
-            rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-            warn 'Ω___4', rejection
-            return false
-          return true
+        per_se_isa = @_get_per_se_isa_for_fields dcl
       else
         unless is_extension
           throw new Error "Ω___1 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
@@ -111,6 +102,19 @@ class Type
       is_extension  = true
       extension     = dcl.refines.constructor
     return { is_extension, extension, }
+
+  #---------------------------------------------------------------------------------------------------------
+  _get_per_se_isa_for_fields: ( dcl ) -> ( x ) ->
+    return false unless x?
+    ### TAINT in the future, should allow extending e.g. lists with fields? ###
+    return false unless gnd.pod.isa x
+    for field_name, subtype of dcl.fields
+      continue if subtype.isa x[ field_name ]
+      ### TAINT use type_of ###
+      rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
+      warn 'Ω___4', rejection
+      return false
+    return true
 
   #---------------------------------------------------------------------------------------------------------
   _classname_from_typename: ( typename = null ) ->
@@ -197,3 +201,4 @@ std.add_types
 
 #===========================================================================================================
 module.exports = { std, type_of, Type, Typespace, }
+

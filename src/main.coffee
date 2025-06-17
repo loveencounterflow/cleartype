@@ -63,64 +63,8 @@ class Cleartype_error extends Error
 class Cleartype_validation_error extends Cleartype_error
 
 
-#===========================================================================================================
-class Cleartype
-
-  #---------------------------------------------------------------------------------------------------------
-  constructor: ->
-    hide @, "_contexts", if false then new WeakMap() else new Map ### TAINT this is going to be configurable for testing ###
-    bind_instance_methods @
-    return undefined
-
-  #---------------------------------------------------------------------------------------------------------
-  _get_ctx: ( type ) ->
-    return ( R = @_contexts.get type ) if R?
-    @_contexts.set type, R = Object.freeze { me: type, ct: @, }
-    return R
-
-  #---------------------------------------------------------------------------------------------------------
-  isa: ( type, x ) ->
-    return type.$isa.call ( @_get_ctx type ), x
-
-  #---------------------------------------------------------------------------------------------------------
-  isa_optional: ( type, x ) -> ( not x? ) or ( @isa type, x )
-
-  #---------------------------------------------------------------------------------------------------------
-  validate: ( type, x ) ->
-    return x if @isa type, x
-    throw new Cleartype_validation_error "Ωcleartype___1 validation error\n#{rpr type}\n#{rpr x}"
-
-  #---------------------------------------------------------------------------------------------------------
-  validate_optional: ( type, x ) ->
-    return x if @isa_optional type, x
-    throw new Cleartype_validation_error "Ωcleartype___2 validation error\n#{rpr type}\n#{rpr x}"
-
-  #---------------------------------------------------------------------------------------------------------
-  create: ( type, P... ) ->
-    return @validate type, type.$create.call ( @_get_ctx type ), P...
-
-  #---------------------------------------------------------------------------------------------------------
-  type_of: type_of
-
-#===========================================================================================================
-ct = new Cleartype()
-
-
-# #===========================================================================================================
-# class Type
-
-#   #---------------------------------------------------------------------------------------------------------
-#   constructor: ( declaration ) ->
-#     @$isa     = declaration.$isa
-#     @$create  = declaration.$create
-#     return undefined
-
-#   # #---------------------------------------------------------------------------------------------------------
-#   # $isa: ->
-#   # $create: ->
 
 
 #===========================================================================================================
 do =>
-  CT              = new Cleartype()
-  module.exports  = { Cleartype, std, CT, ( get_instance_methods CT )..., }
+  module.exports  = {}

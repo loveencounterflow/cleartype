@@ -34,33 +34,9 @@ class Type
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @constructor
     #.......................................................................................................
-    { has_fields,   fields,     } =    @_fields_from_dcl  dcl ? null
-    { is_extension, extension,  } = @_extension_from_dcl  dcl ? null
-    #.......................................................................................................
-    if dcl.isa?
-      switch true
-        when dcl.isa instanceof @constructor
-          per_se_isa = do ( isa = dcl.isa.isa ) -> ( x ) -> isa x
-        when gnd.function.isa dcl.isa
-          per_se_isa = dcl.isa
-        else throw new Error 'Ω___3'
-    #.......................................................................................................
-    ### TAINT decomplect logic ###
-    else
-      if has_fields
-        per_se_isa = @_get_per_se_isa_for_fields dcl
-      else
-        unless is_extension
-          throw new Error "Ω___1 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
-        per_se_isa = ( x ) -> true
-    #.......................................................................................................
-    if is_extension
-      ### TAINT review use of dcl.refines here ###
-      debug 'Ωcltt___5', typename, dcl.refines, dcl.refines.isa
-      isa = ( x ) -> ( dcl.refines.isa x ) and ( per_se_isa x )
-    else
-      isa = per_se_isa
-    nameit ( @_isaname_from_typename typename ), isa
+    { has_fields,   fields,     } =    @_fields_from_dcl  dcl
+    { is_extension, extension,  } = @_extension_from_dcl  dcl
+    isa                           =       @_isa_from_dcl  dcl, { has_fields, is_extension, typename, }
     #.......................................................................................................
     create = dcl.create ? ( x ) -> x
     # if dcl.create?
@@ -102,6 +78,33 @@ class Type
       is_extension  = true
       extension     = dcl.refines.constructor
     return { is_extension, extension, }
+
+  #---------------------------------------------------------------------------------------------------------
+  _isa_from_dcl: ( dcl, { has_fields, is_extension, typename, } ) ->
+    if dcl.isa?
+      switch true
+        when dcl.isa instanceof @constructor
+          per_se_isa = do ( isa = dcl.isa.isa ) -> ( x ) -> isa x
+        when gnd.function.isa dcl.isa
+          per_se_isa = dcl.isa
+        else throw new Error 'Ω___3'
+    #.......................................................................................................
+    ### TAINT decomplect logic ###
+    else
+      if has_fields
+        per_se_isa = @_get_per_se_isa_for_fields dcl
+      else
+        unless is_extension
+          throw new Error "Ω___1 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
+        per_se_isa = ( x ) -> true
+    #.......................................................................................................
+    if is_extension
+      ### TAINT review use of dcl.refines here ###
+      debug 'Ωcltt___5', typename, dcl.refines, dcl.refines.isa
+      isa = ( x ) -> ( dcl.refines.isa x ) and ( per_se_isa x )
+    else
+      isa = per_se_isa
+    return nameit ( @_isaname_from_typename typename ), isa
 
   #---------------------------------------------------------------------------------------------------------
   _get_per_se_isa_for_fields: ( dcl ) -> ( x ) ->

@@ -53,6 +53,7 @@ class Type
       create:       create
       fields:       fields
       has_fields:   has_fields
+      is_extension: is_extension
     nameit ( @_classname_from_typename typename ), clasz
     return new clasz()
 
@@ -81,33 +82,28 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   _isa_from_dcl: ( dcl, { has_fields, is_extension, typename, } ) ->
-    if dcl.isa?
-      switch true
-        when dcl.isa instanceof @constructor
-          per_se_isa = do ( isa = dcl.isa.isa ) -> ( x ) -> isa x
-        when gnd.function.isa dcl.isa
-          per_se_isa = dcl.isa
-        else throw new Error 'Ω___3'
+    if ( isa = dcl.isa )?
+      if isa instanceof @constructor
+        isa = do ( other_type = isa ) -> ( x ) -> other_type.isa x
+      unless gnd.function.isa dcl.isa
+        throw new Error 'Ω___3'
     #.......................................................................................................
     ### TAINT decomplect logic ###
     else
       if has_fields
-        per_se_isa = @_get_per_se_isa_for_fields dcl
+        isa = @_get_isa_for_fields dcl
       else
         unless is_extension
           throw new Error "Ω___1 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
-        per_se_isa = ( x ) -> true
+        isa = ( x ) -> true
     #.......................................................................................................
     if is_extension
-      ### TAINT review use of dcl.refines here ###
-      debug 'Ωcltt___5', typename, dcl.refines, dcl.refines.isa
-      isa = ( x ) -> ( dcl.refines.isa x ) and ( per_se_isa x )
-    else
-      isa = per_se_isa
+      isa = do ( base = dcl.refines, isa ) -> ( x ) -> ( base.isa x ) and ( isa.call @, x )
+    #.......................................................................................................
     return nameit ( @_isaname_from_typename typename ), isa
 
   #---------------------------------------------------------------------------------------------------------
-  _get_per_se_isa_for_fields: ( dcl ) -> ( x ) ->
+  _get_isa_for_fields: ( dcl ) -> ( x ) ->
     return false unless x?
     ### TAINT in the future, should allow extending e.g. lists with fields? ###
     return false unless gnd.pod.isa x

@@ -12,6 +12,9 @@ hide = ( object, name, value ) => Object.defineProperty object, name,
     value:        value
 
 #===========================================================================================================
+nameit = ( name, f ) -> Object.defineProperty f, 'name', { value: name, }; f
+
+#===========================================================================================================
 get_instance_methods = ( instance ) ->
   isa_function  = ( require './builtins' ).std.function.$isa
   R             = {}
@@ -22,9 +25,12 @@ get_instance_methods = ( instance ) ->
   return R
 
 #===========================================================================================================
-bind_instance_methods = ( instance ) ->
+bind_instance_methods = ( instance, keep_name = true ) ->
   for key, method of get_instance_methods Object.getPrototypeOf instance
-    hide instance, key, method.bind instance
+    if keep_name
+      hide instance, key, nameit method.name, method.bind instance
+    else
+      hide instance, key, method.bind instance
   return null
 
 #===========================================================================================================
@@ -35,6 +41,7 @@ rpr     = ( x ) -> ( require 'loupe' ).inspect x
 #===========================================================================================================
 module.exports = {
   hide
+  nameit
   get_instance_methods
   bind_instance_methods
   debug

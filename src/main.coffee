@@ -37,7 +37,7 @@ class Type
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @
     #.......................................................................................................
-    fields = {}
+    { has_fields, fields, } = @_fields_from_dcl_fields dcl.fields ? null
     #.......................................................................................................
     ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
     if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
@@ -49,14 +49,6 @@ class Type
     else
       is_extension  = false
       extension     = @
-    #.......................................................................................................
-    has_fields = do =>
-      return false unless dcl.fields?
-      count = 0
-      for subtype_name, subtype of dcl.fields
-        count++
-        fields[ subtype_name ] = subtype
-      return count isnt 0
     #.......................................................................................................
     if dcl.isa?
       switch true
@@ -107,6 +99,16 @@ class Type
       has_fields:   has_fields
     nameit ( clasz.classname_from_typename typename ), clasz
     return new clasz()
+
+  #---------------------------------------------------------------------------------------------------------
+  @_fields_from_dcl_fields: ( dcl_fields = null ) ->
+    has_fields  = false
+    fields      = Object.create null
+    if dcl_fields?
+      for sub_typename, sub_type of dcl_fields
+        has_fields              = true
+        fields[ sub_typename ]  = sub_type
+    return { has_fields, fields, }
 
   #---------------------------------------------------------------------------------------------------------
   @classname_from_typename = ( typename = null ) ->

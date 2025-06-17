@@ -9,6 +9,7 @@
   get_instance_methods
   bind_instance_methods
   debug
+  warn
   help
   rpr                   } = require './helpers'
 

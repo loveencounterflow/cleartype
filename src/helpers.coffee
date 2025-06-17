@@ -36,6 +36,7 @@ bind_instance_methods = ( instance, keep_name = true ) ->
 #===========================================================================================================
 debug   = console.debug
 help    = console.help
+warn    = console.warn
 rpr     = ( x ) -> ( require 'loupe' ).inspect x
 
 #===========================================================================================================
@@ -46,4 +47,5 @@ module.exports = {
   bind_instance_methods
   debug
   help
+  warn
   rpr }

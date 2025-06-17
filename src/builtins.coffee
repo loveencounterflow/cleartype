@@ -8,61 +8,28 @@ ct_kinds        = Object.freeze [ '$unspecified', '$enumeration', '$record', '$v
 
 
 #===========================================================================================================
-std =
-  anything:
-    $isa:         ( x ) -> true
-  primitive:
-    $isa:         ( x ) -> primitive_types.includes type_of x
-  boolean:
-    $isa:         ( x ) -> ( x is true ) or ( x is false )
-  function:
-    $isa:         ( x ) -> ( Object::toString.call x ) is '[object Function]'
-    $create:      -> ( -> null )
-  asyncfunction:
-    $isa:         ( x ) -> ( Object::toString.call x ) is '[object AsyncFunction]'
-    $create:      -> ( -> await null )
-  symbol:
-    $isa:         ( x ) -> ( typeof x ) is 'symbol'
-    $create:      ( P... ) -> Symbol @ct.create std.text, P...
-  object:
-    $isa:         ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
-    $create:      ( cfg ) -> { cfg..., }
-  pod:
-    $isa:         ( x ) -> x? and x.constructor in [ Object, undefined, ]
-    $create:      ( cfg ) -> Object.assign ( Object.create null ), cfg
-  float:
-    $isa:         ( x ) -> Number.isFinite x
-    $create:      -> 0
-  integer:
-    $isa:         ( x ) -> Number.isInteger x
-    $create:      -> 0
-  text:
-    $isa:         ( x ) -> ( typeof x ) is 'string'
-    $create:      ( cfg ) -> ( e for e from cfg ).join ''
-  nonempty_text:
-    $isa:         ( x ) -> ( typeof x ) is 'string' and ( x.length > 0 )
-    $create:      ( cfg ) -> ( e for e from cfg ).join ''
-  set:
-    $isa:         ( x ) -> x instanceof Set
-    $create:      ( cfg ) -> new Set cfg ? []
-  map:
-    $isa:         ( x ) -> x instanceof Map
-    $create:      ( cfg ) -> new Map cfg ? []
-  list:
-    $isa:         ( x ) -> Array.isArray x
-    $create:      ( cfg ) -> ( x for x from cfg ? [] )
-  nonempty_list:
-    $isa:         ( x ) -> ( Array.isArray x ) and ( x.length > 0 )
-    $create:      ( cfg ) -> ( x for x from cfg ? [] )
+gnd =
+  anything:       isa: ( x ) -> true
+  primitive:      isa: ( x ) -> primitive_types.includes type_of x
+  boolean:        isa: ( x ) -> ( x is true ) or ( x is false )
+  function:       isa: ( x ) -> ( Object::toString.call x ) is '[object Function]'
+  asyncfunction:  isa: ( x ) -> ( Object::toString.call x ) is '[object AsyncFunction]'
+  symbol:         isa: ( x ) -> ( typeof x ) is 'symbol'
+  object:         isa: ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
+  pod:            isa: ( x ) -> x? and x.constructor in [ Object, undefined, ]
+  float:          isa: ( x ) -> Number.isFinite x
+  integer:        isa: ( x ) -> Number.isInteger x
+  text:           isa: ( x ) -> ( typeof x ) is 'string'
+  nonempty_text:  isa: ( x ) -> ( typeof x ) is 'string' and ( x.length > 0 )
+  set:            isa: ( x ) -> x instanceof Set
+  map:            isa: ( x ) -> x instanceof Map
+  list:           isa: ( x ) -> Array.isArray x
+  nonempty_list:  isa: ( x ) -> ( Array.isArray x ) and ( x.length > 0 )
   #.........................................................................................................
-  nullary:
-    $isa:         ( x ) -> x? and ( ( x.length is 0 ) or ( x.size is 0 ) )
-  unary:
-    $isa:         ( x ) -> x? and ( ( x.length is 1 ) or ( x.size is 1 ) )
-  binary:
-    $isa:         ( x ) -> x? and ( ( x.length is 2 ) or ( x.size is 2 ) )
-  trinary:
-    $isa:         ( x ) -> x? and ( ( x.length is 3 ) or ( x.size is 3 ) )
+  nullary:        isa: ( x ) -> x? and ( ( x.length is 0 ) or ( x.size is 0 ) )
+  unary:          isa: ( x ) -> x? and ( ( x.length is 1 ) or ( x.size is 1 ) )
+  binary:         isa: ( x ) -> x? and ( ( x.length is 2 ) or ( x.size is 2 ) )
+  trinary:        isa: ( x ) -> x? and ( ( x.length is 3 ) or ( x.size is 3 ) )
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -92,4 +59,4 @@ type_of = ( x ) ->
 
 
 #===========================================================================================================
-module.exports = { std, type_of, primitive_types, ct_kinds, }
+module.exports = { gnd, type_of, primitive_types, ct_kinds, }

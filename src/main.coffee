@@ -30,19 +30,16 @@ class Type
     return undefined
 
   #---------------------------------------------------------------------------------------------------------
-  create: ( typename, dcl ) -> @constructor.from_declaration dcl
-
-  #---------------------------------------------------------------------------------------------------------
-  @from_declaration: ( typename, dcl ) ->
+  create: ( typename, dcl ) ->
     ### TAINT should wrap b/c of names? ###
-    return dcl if dcl instanceof @
+    return dcl if dcl instanceof @constructor
     #.......................................................................................................
     { has_fields,   fields,     } =    @_fields_from_dcl  dcl ? null
     { is_extension, extension,  } = @_extension_from_dcl  dcl ? null
     #.......................................................................................................
     if dcl.isa?
       switch true
-        when dcl.isa instanceof @
+        when dcl.isa instanceof @constructor
           per_se_isa = do ( isa = dcl.isa.isa ) -> ( x ) -> isa x
         when ( Object::toString.call dcl.isa ) is '[object Function]'
           per_se_isa = dcl.isa
@@ -72,6 +69,7 @@ class Type
       isa = ( x ) -> ( dcl.refines.isa x ) and ( per_se_isa x )
     else
       isa = per_se_isa
+    nameit ( @_isaname_from_typename typename ), isa
     #.......................................................................................................
     create = dcl.create ? ( x ) -> x
     # if dcl.create?
@@ -83,15 +81,16 @@ class Type
     #.......................................................................................................
     clasz = class extends extension
       name:         typename
-      isa:          nameit ( @isaname_from_typename typename ), isa
+      # refines:      dcl.refines
+      isa:          isa
       create:       create
       fields:       fields
       has_fields:   has_fields
-    nameit ( clasz.classname_from_typename typename ), clasz
+    nameit ( @_classname_from_typename typename ), clasz
     return new clasz()
 
   #---------------------------------------------------------------------------------------------------------
-  @_fields_from_dcl: ( dcl ) ->
+  _fields_from_dcl: ( dcl ) ->
     has_fields  = false
     fields      = Object.create null
     if dcl.fields?
@@ -101,12 +100,12 @@ class Type
     return { has_fields, fields, }
 
   #---------------------------------------------------------------------------------------------------------
-  @_extension_from_dcl: ( dcl ) ->
+  _extension_from_dcl: ( dcl ) ->
     is_extension  = false
-    extension     = @
+    extension     = @constructor
     ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
     if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
-      unless ( dcl.refines instanceof @ )
+      unless ( dcl.refines instanceof @constructor )
         ### TAINT use `type_of()` ###
         throw new Error "Ω___2 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
       is_extension  = true
@@ -114,13 +113,13 @@ class Type
     return { is_extension, extension, }
 
   #---------------------------------------------------------------------------------------------------------
-  @classname_from_typename = ( typename = null ) ->
+  _classname_from_typename: ( typename = null ) ->
     R = ( typename ? 'anonymous' )
     ### TAINT not Unicode-compliant ###
     return ( R[ 0 ] ).toUpperCase() + R[ 1 .. ]
 
   #---------------------------------------------------------------------------------------------------------
-  @isaname_from_typename = ( typename = null ) ->
+  _isaname_from_typename: ( typename = null ) ->
     R = ( typename ? 'anonymous' )
     return "isa_#{typename}"
 
@@ -130,7 +129,7 @@ class Type
     throw new Error "Ω___6 Cleartype_validation_error"
 
   #---------------------------------------------------------------------------------------------------------
-  isa: ( x ) -> x instanceof @constructor
+  isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
 
 #===========================================================================================================
 class Typespace
@@ -141,12 +140,13 @@ class Typespace
     for typename, dcl of dcls
       if Reflect.has @, typename
         throw new Error "Ω___7 name collision: type / property #{rpr typename} already declared"
-      @[ typename ] = Type.from_declaration typename, dcl
+      @[ typename ] = type.create typename, dcl
     return null
 
 #===========================================================================================================
-# type  = new Type()
-std   = new Typespace()
+type      = new Type()
+std       = new Typespace()
+std.type  = type
 
 #===========================================================================================================
 std.add_types

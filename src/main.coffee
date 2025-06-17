@@ -37,18 +37,8 @@ class Type
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @
     #.......................................................................................................
-    { has_fields, fields, } = @_fields_from_dcl_fields dcl.fields ? null
-    #.......................................................................................................
-    ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
-    if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
-      unless ( dcl.refines instanceof @ )
-        ### TAINT use `type_of()` ###
-        throw new Error "Ω___2 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
-      is_extension  = true
-      extension     = dcl.refines.constructor
-    else
-      is_extension  = false
-      extension     = @
+    { has_fields,   fields,     } =    @_fields_from_dcl  dcl ? null
+    { is_extension, extension,  } = @_extension_from_dcl  dcl ? null
     #.......................................................................................................
     if dcl.isa?
       switch true
@@ -101,14 +91,27 @@ class Type
     return new clasz()
 
   #---------------------------------------------------------------------------------------------------------
-  @_fields_from_dcl_fields: ( dcl_fields = null ) ->
+  @_fields_from_dcl: ( dcl ) ->
     has_fields  = false
     fields      = Object.create null
-    if dcl_fields?
-      for sub_typename, sub_type of dcl_fields
+    if dcl.fields?
+      for sub_typename, sub_type of dcl.fields
         has_fields              = true
         fields[ sub_typename ]  = sub_type
     return { has_fields, fields, }
+
+  #---------------------------------------------------------------------------------------------------------
+  @_extension_from_dcl: ( dcl ) ->
+    is_extension  = false
+    extension     = @
+    ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
+    if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
+      unless ( dcl.refines instanceof @ )
+        ### TAINT use `type_of()` ###
+        throw new Error "Ω___2 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
+      is_extension  = true
+      extension     = dcl.refines.constructor
+    return { is_extension, extension, }
 
   #---------------------------------------------------------------------------------------------------------
   @classname_from_typename = ( typename = null ) ->

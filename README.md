@@ -24,6 +24,13 @@
 
 * **`[—]`** create `Type_base` class that types are really derived from so they don't inherit methods like
   `_isaname_from_typename()` and so on
+* **`[—]`** rename `dcl.refines` -> `dcl.base`
+* **`[—]`** detect whether a type is either a <del>primitive</del> <ins>'fieldless type' (call it 'simple'
+  to distinguish it from 'primitive')</ins> or else a POD (i.e. a 'compound' type); refuse to base a simple
+  type on a compound type and vice versa
+  * **`[—]`** indicators for compoundness:
+    * `dcl.fields` is a POD (or not a simple type)
+    * `dcl.template` is a POD (or not a simple type)
 * **`[—]`** `Type::create()` needs a `context` / `ctx` argument so it can resolve typenames from typespace
 * **`[—]`** implement inheriting / linking typespaces so they can be 'assembled'; linking probably better
   b/c it allows to gather types from any number of typespaces into a new one

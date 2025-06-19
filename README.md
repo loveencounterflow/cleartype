@@ -24,6 +24,11 @@
 
 * **`[—]`** create `Type_base` class that types are really derived from so they don't inherit methods like
   `_isaname_from_typename()` and so on
+* **`[—]`** `Type::create()` needs a `context` / `ctx` argument so it can resolve typenames from typespace
+* **`[—]`** implement inheriting / linking typespaces so they can be 'assembled'; linking probably better
+  b/c it allows to gather types from any number of typespaces into a new one
+* **`[—]`** perform type creation on a class 'adjacent' to `Type` so derived type classes don't inherent
+  internal stuff like what is now `Type::_classname_from_typename()`
 
 * ??? **`[—]`** put typespaces in `builtins` into object `typespaces`?
 * ??? **`[—]`** it should be possible to use arbitrary field names in the declaration

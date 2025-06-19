@@ -24,6 +24,7 @@ internals = new class Internals then constructor: ->
 class Cleartype_error extends Error
 class Cleartype_arguments_not_allowed_error extends Cleartype_error
 class Cleartype_validation_error extends Cleartype_error
+class Cleartype_kind_error extends Cleartype_error
 class Cleartype_creation_error extends Cleartype_error
 
 
@@ -46,84 +47,115 @@ class Type
   create: ( typename, dcl ) ->
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @constructor
+    dcl = { dcl..., name: typename, }
     #.......................................................................................................
-    { is_extension, base, baseclass,  } = @_extension_from_dcl  dcl
-    { has_fields, fields,             } =    @_compile_fields { typename, dcl, base, }
-    { has_template, template,         } =  @_compile_template { typename, dcl, base, fields, }
-    isa                                 =       @_isa_from_dcl  dcl, { has_fields, is_extension, typename, }
+    Object.assign dcl, @_compile_base     dcl
+    Object.assign dcl, @_compile_fields   dcl
+    Object.assign dcl, @_compile_template dcl
+    Object.assign dcl, @_compile_isa      dcl
     #.......................................................................................................
-    create = -> throw new Cleartype_creation_error "Ω___8 unable to create a #{typename}"
+    create = -> throw new Cleartype_creation_error "Ω___3 unable to create a #{dcl.name}"
     if dcl.create?
       validate gnd.function, dcl.create
-      create = do ( create = dcl.create       ) -> ( P... ) -> @validate create.call @, P...
-    else if is_extension and ( not has_fields )
-      create = do ( create = base.create     ) -> ( P... ) -> @validate create.call base, P...
+      create = do ( create = dcl.create                       ) -> ( P... ) -> @validate create.call @, P...
+    else if dcl.has_base and ( not dcl.has_fields )
+      create = do ( create = dcl.base.create, base =dcl.base  ) -> ( P... ) -> @validate create.call base, P...
     ### TAINT provide create when there are fields but no create() ###
-    else if has_fields
-      debug 'Ω__10'
-    create = nameit ( @_method_name_from_typename 'create', typename ), create
+    else if dcl.has_fields
+      debug 'Ω___4'
+    create = nameit ( @_method_name_from_typename 'create', dcl.name ), create
     #.......................................................................................................
     ### TAINT should we differentiate instance properties from prototype methods? ###
-    clasz = class extends baseclass
+    clasz = class extends dcl.baseclass
       #.....................................................................................................
       constructor: ( P... ) ->
         super P...
-        hide @, 'name',         typename
+        hide @, 'name',         dcl.name
         hide @, 'base',         dcl.base
-        hide @, 'fields',       fields
-        hide @, 'template',     template
-        hide @, 'has_fields',   has_fields
-        hide @, 'has_template', has_template
-        hide @, 'is_extension', is_extension
+        hide @, 'fields',       dcl.fields
+        hide @, 'template',     dcl.template
+        hide @, 'has_fields',   dcl.has_fields
+        hide @, 'has_template', dcl.has_template
+        hide @, 'has_base',     dcl.has_base
+        hide @, 'is_compound',  dcl.is_compound
+        hide @, 'is_creatable', dcl.is_creatable
         return undefined
       #.....................................................................................................
-      isa:          isa
+      isa:          dcl.isa
       create:       create
-    nameit ( @_classname_from_typename typename ), clasz
+    nameit ( @_classname_from_typename dcl.name ), clasz
     return new clasz()
 
   #---------------------------------------------------------------------------------------------------------
-  _compile_fields: ({ typename, dcl, base, }) ->
+  _compile_base: ( dcl ) ->
+    has_base  = false
+    baseclass = @constructor
+    base      = null
+    ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
+    # if ( Reflect.has dcl, 'base' ) and ( dcl.base isnt null )
+    if dcl.base?
+      unless ( dcl.base instanceof @constructor )
+        ### TAINT use `type_of()` ###
+        throw new Error "Ω___6 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
+      has_base  = true
+      ### NOTE redundant here but needed when we allow typenames for base ###
+      base      = dcl.base
+      baseclass = dcl.base.constructor
+    return { has_base, base, baseclass, }
+
+  #---------------------------------------------------------------------------------------------------------
+  _compile_fields: ( dcl ) ->
     has_fields  = false
     fields      = Object.create null
-    ### TAINT missing validate gnd.pod, fields ###
-    for source in [ base?.fields, dcl.fields, ]
+    is_compound = null
+    sources     = []
+    #.......................................................................................................
+    if dcl.has_base
+      sources.push dcl.base.fields
+      is_compound = dcl.base.is_compound
+    #.......................................................................................................
+    if dcl.fields?
+      validate gnd.compound, dcl.fields
+      sources.push dcl.fields
+      if dcl.has_base and ( dcl.is_compound isnt true )
+        throw new Cleartype_kind_error "Ω___5 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+      is_compound = true
+    #.......................................................................................................
+    for source in sources
       for sub_name, sub_field of ( source ? {} )
         has_fields          = true
         fields[ sub_name ]  = sub_field
-    return { has_fields, fields, }
+    ### Note at this point is_compound can be any of `null`, `true`, `false` ###
+    return { has_fields, fields, is_compound, }
 
   #---------------------------------------------------------------------------------------------------------
-  _compile_template: ({ typename, dcl, base, fields, }) ->
+  _compile_template: ( dcl ) ->
     has_template  = false
     template      = Object.create null
-    ### TAINT missing validate gnd.pod, template ###
-    for source in [ base?.template, dcl.template, ]
-      for sub_name, sub_template of ( source ? {} )
-        has_template          = true
-        producer              = if ( gnd.function.isa sub_template ) then sub_template else \
-          do ( value = sub_template ) -> -> sub_template
-        ### TIANT use API call ###
-        template[ sub_name ]  = nameit "create_#{typename}_#{sub_name}", producer
+    sources       = []
+    #.......................................................................................................
+    if dcl.has_base and dcl.base.has_template
+      sources.push base.template
+    # #.......................................................................................................
+    # if dcl.template?
+    #   validate gnd.compound dcl.fields
+    #   sources.push dcl.fields
+    #   if has_base and ( is_compound isnt true )
+    #     throw new Cleartype_kind_error "Ω___5 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+    #   is_compound = true
+    # #.......................................................................................................
+    # for source in [ base?.template, dcl.template, ]
+    #   for sub_name, sub_template of ( source ? {} )
+    #     has_template          = true
+    #     producer              = if ( gnd.function.isa sub_template ) then sub_template else \
+    #       do ( value = sub_template ) -> -> sub_template
+    #     ### TIANT use API call ###
+    #     template[ sub_name ]  = nameit "create_#{dcl.name}_#{sub_name}", producer
+    # return { has_template, template, is_compound, }
     return { has_template, template, }
 
   #---------------------------------------------------------------------------------------------------------
-  _extension_from_dcl: ( dcl ) ->
-    is_extension  = false
-    baseclass     = @constructor
-    base    = null
-    ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
-    if ( Reflect.has dcl, 'base' ) and ( dcl.base isnt null )
-      unless ( dcl.base instanceof @constructor )
-        ### TAINT use `type_of()` ###
-        throw new Error "Ω___9 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
-      is_extension  = true
-      base    = dcl.base
-      baseclass     = dcl.base.constructor
-    return { is_extension, base, baseclass, }
-
-  #---------------------------------------------------------------------------------------------------------
-  _isa_from_dcl: ( dcl, { has_fields, is_extension, typename, } ) ->
+  _compile_isa: ( dcl ) ->
     if ( isa = dcl.isa )?
       if isa instanceof @constructor
         isa = do ( other_type = isa ) -> ( x ) -> other_type.isa x
@@ -131,17 +163,18 @@ class Type
     #.......................................................................................................
     ### TAINT decomplect logic ###
     else
-      if has_fields
+      if dcl.has_fields
         isa = @_get_isa_for_fields dcl
       else
-        unless is_extension
-          throw new Error "Ω__10 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
+        unless dcl.has_base
+          throw new Error "Ω___7 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
         isa = ( x ) -> true
     #.......................................................................................................
-    if is_extension
+    if dcl.has_base
       isa = do ( base = dcl.base, isa ) -> ( x ) -> ( base.isa x ) and ( isa.call @, x )
     #.......................................................................................................
-    return nameit ( @_method_name_from_typename 'isa', typename ), isa
+    isa = nameit ( @_method_name_from_typename 'isa', dcl.name ), isa
+    return { isa, }
 
   #---------------------------------------------------------------------------------------------------------
   _get_isa_for_fields: ( dcl ) -> ( x ) ->
@@ -152,7 +185,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      # warn 'Ω__11', rejection
+      # warn 'Ω___8', rejection
       return false
     return true
 
@@ -170,7 +203,7 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    throw new Cleartype_validation_error "Ω__13 validation error: expected a #{@name}, got a #{type_of x}"
+    throw new Cleartype_validation_error "Ω___9 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
   isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
@@ -183,7 +216,7 @@ class Typespace
     ### TAINT name collisions possible ###
     for typename, dcl of dcls
       if Reflect.has @, typename
-        throw new Error "Ω__14 name collision: type / property #{rpr typename} already declared"
+        throw new Error "Ω__10 name collision: type / property #{rpr typename} already declared"
       @[ typename ] = type.create typename, dcl
     return null
 

@@ -65,7 +65,6 @@ class Type
         hide @, 'base',         dcl.base
         hide @, 'fields',       dcl.fields
         hide @, 'template',     dcl.template
-        hide @, 'get_template', dcl.get_template
         hide @, 'has_fields',   dcl.has_fields
         hide @, 'has_template', dcl.has_template
         hide @, 'has_base',     dcl.has_base
@@ -75,6 +74,7 @@ class Type
       #.....................................................................................................
       isa:          dcl.isa
       create:       dcl.create
+      get_template: dcl.get_template
     nameit ( @_classname_from_typename dcl.name ), clasz
     return new clasz()
 
@@ -122,19 +122,31 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   _compile_template: ( dcl ) ->
-    has_template  = false
+    has_template  = Reflect.has dcl, 'template'
     template      = Object.create null
     sources       = []
     get_template  = -> throw new Cleartype_notemplate_error "Ω___5 type #{dcl.name} doesn't have a template"
     #.......................................................................................................
-    if dcl.has_base and dcl.base.has_template
-      sources.push base.template
+    if has_template
+      if gnd.function.isa dcl.template
+        debug 'Ω___6', dcl.name, "_compile_template"
+        template      = dcl.template
+        get_template  = -> template.call @
+      #.......................................................................................................
+      else if gnd.simple.isa dcl.template
+        debug 'Ω___7', dcl.name, "_compile_template", rpr dcl.template
+        template      = dcl.template
+        get_template  = -> template
+    #.......................................................................................................
+    else if dcl.has_base and dcl.base.has_template
+      debug 'Ω___8', dcl.name, "_compile_template"
+      sources.push dcl.base.template
     # #.......................................................................................................
     # if dcl.template?
     #   validate gnd.compound dcl.fields
     #   sources.push dcl.fields
     #   if has_base and ( is_compound isnt true )
-    #     throw new Cleartype_kind_mismatch_error "Ω___6 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+    #     throw new Cleartype_kind_mismatch_error "Ω___9 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
     #   is_compound = true
     # #.......................................................................................................
     # for source in [ base?.template, dcl.template, ]
@@ -145,6 +157,7 @@ class Type
     #     ### TIANT use API call ###
     #     template[ sub_name ]  = nameit "create_#{dcl.name}_#{sub_name}", producer
     # return { has_template, template, is_compound, }
+    get_template = nameit ( @_method_name_from_typename 'get_template_for', dcl.name ), get_template
     return { has_template, template, get_template, }
 
   #---------------------------------------------------------------------------------------------------------
@@ -160,7 +173,7 @@ class Type
         isa = @_get_isa_for_fields dcl
       else
         unless dcl.has_base
-          throw new Error "Ω___7 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
+          throw new Error "Ω__10 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
         isa = ( x ) -> true
     #.......................................................................................................
     if dcl.has_base
@@ -171,7 +184,7 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   _compile_create: ( dcl ) ->
-    create = -> throw new Cleartype_nocreate_error "Ω___8 unable to create a #{dcl.name}"
+    create = -> throw new Cleartype_nocreate_error "Ω__11 unable to create a #{dcl.name}"
     if dcl.create?
       validate gnd.function, dcl.create
       create = do ( create = dcl.create                       ) -> ( P... ) -> @validate create.call @, P...
@@ -179,7 +192,7 @@ class Type
       create = do ( create = dcl.base.create, base =dcl.base  ) -> ( P... ) -> @validate create.call base, P...
     ### TAINT provide create when there are fields but no create() ###
     else if dcl.has_fields
-      debug 'Ω___9'
+      debug 'Ω__12'
     create = nameit ( @_method_name_from_typename 'create', dcl.name ), create
     return { create, }
 
@@ -192,7 +205,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      # warn 'Ω__10', rejection
+      # warn 'Ω__13', rejection
       return false
     return true
 
@@ -210,7 +223,7 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    throw new Cleartype_type_validation_error "Ω__11 validation error: expected a #{@name}, got a #{type_of x}"
+    throw new Cleartype_type_validation_error "Ω__14 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
   isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
@@ -223,7 +236,7 @@ class Typespace
     ### TAINT name collisions possible ###
     for typename, dcl of dcls
       if Reflect.has @, typename
-        throw new Error "Ω__12 name collision: type / property #{rpr typename} already declared"
+        throw new Error "Ω__15 name collision: type / property #{rpr typename} already declared"
       @[ typename ] = type.create typename, dcl
     return null
 
@@ -238,6 +251,7 @@ std.add_types
     isa:      ( x ) -> ( typeof x ) is 'string' # ( Object::toString.call x ) is '[object String]'
     ### NOTE just returning argument which will be validated; only strings pass so `create value` is a no-op / validation only ###
     create:   ( x ) -> return if ( arguments.length is 0 ) then '' else x
+    template: ''
   #.........................................................................................................
   float:
     isa:      ( x ) -> Number.isFinite x

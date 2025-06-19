@@ -7,7 +7,7 @@
 #-----------------------------------------------------------------------------------------------------------
 { hide
   # get_instance_methods
-  # bind_instance_methods
+  bind_instance_methods
   nameit
   debug
   warn
@@ -18,15 +18,22 @@
 #===========================================================================================================
 class Cleartype_error extends Error
 class Cleartype_validation_error extends Cleartype_error
+class Cleartype_creation_error extends Cleartype_error
 
+
+#===========================================================================================================
+validate = ( type, x ) ->
+  return x if type.isa x
+  throw new Cleartype_validation_error "Ω___1 expected a #{type.name}, got a #{type_of x}"
 
 #===========================================================================================================
 class Type
 
   #---------------------------------------------------------------------------------------------------------
   constructor: ( dcl = null ) ->
-    throw new Error "Ω___1 not allowed" if dcl?
-    # H.bind_instance_methods @
+    throw new Error "Ω___2 not allowed" if dcl?
+    bind_instance_methods @
+    @name = @constructor.name.toLowerCase()
     return undefined
 
   #---------------------------------------------------------------------------------------------------------
@@ -34,19 +41,27 @@ class Type
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @constructor
     #.......................................................................................................
-    { has_fields,   fields,     } =    @_fields_from_dcl  dcl
-    { is_extension, extension,  } = @_extension_from_dcl  dcl
-    isa                           =       @_isa_from_dcl  dcl, { has_fields, is_extension, typename, }
+    { has_fields, fields,             } =    @_fields_from_dcl  dcl
+    { is_extension, base, baseclass,  } = @_extension_from_dcl  dcl
+    isa                                 =       @_isa_from_dcl  dcl, { has_fields, is_extension, typename, }
     #.......................................................................................................
-    create = dcl.create ? ( x ) -> x
-    # if dcl.create?
-    #   create = ( x ) -> dcl.create x
-    # else
-    #   ### TAINT check whether there are fields ###
-    #   fields = {}
-    #   for field_name, dsc of Object.getOwnPropertyDescriptors dcl
+    debug 'Ω___3', 'create', typename, base, baseclass
+    if dcl.create?
+      debug 'Ω___4', 'create', typename
+      debug 'Ω___5', dcl.create.toString() if typename is 'text'
+      validate gnd.function, dcl.create
+      create = do ( create = dcl.create       ) -> ( P... ) -> @validate create.call @, P...
+    ### TAINT this must be properly resolved (with inheritance?) ###
+    else if is_extension
+      debug 'Ω___6', base.create.toString() if typename is 'nonempty_text'
+      create = do ( create = base.create     ) -> ( P... ) -> @validate create.call base, P...
+    else
+      debug 'Ω___7', 'create', typename
+      create = -> throw new Cleartype_creation_error "Ω___8 unable to create a #{typename}"
+    ### TAINT provide create when there are fields but no create() ###
+    create = nameit ( @_method_name_from_typename 'create', typename ), create
     #.......................................................................................................
-    clasz = class extends extension
+    clasz = class extends baseclass
       name:         typename
       # refines:      dcl.refines
       isa:          isa
@@ -70,23 +85,24 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   _extension_from_dcl: ( dcl ) ->
     is_extension  = false
-    extension     = @constructor
+    baseclass     = @constructor
+    base    = null
     ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
     if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
       unless ( dcl.refines instanceof @constructor )
         ### TAINT use `type_of()` ###
-        throw new Error "Ω___2 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
+        throw new Error "Ω___9 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
       is_extension  = true
-      extension     = dcl.refines.constructor
-    return { is_extension, extension, }
+      base    = dcl.refines
+      baseclass     = dcl.refines.constructor
+    return { is_extension, base, baseclass, }
 
   #---------------------------------------------------------------------------------------------------------
   _isa_from_dcl: ( dcl, { has_fields, is_extension, typename, } ) ->
     if ( isa = dcl.isa )?
       if isa instanceof @constructor
         isa = do ( other_type = isa ) -> ( x ) -> other_type.isa x
-      unless gnd.function.isa dcl.isa
-        throw new Error 'Ω___3'
+      validate gnd.function, dcl.isa
     #.......................................................................................................
     ### TAINT decomplect logic ###
     else
@@ -94,13 +110,13 @@ class Type
         isa = @_get_isa_for_fields dcl
       else
         unless is_extension
-          throw new Error "Ω___1 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
+          throw new Error "Ω__10 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
         isa = ( x ) -> true
     #.......................................................................................................
     if is_extension
       isa = do ( base = dcl.refines, isa ) -> ( x ) -> ( base.isa x ) and ( isa.call @, x )
     #.......................................................................................................
-    return nameit ( @_isaname_from_typename typename ), isa
+    return nameit ( @_method_name_from_typename 'isa', typename ), isa
 
   #---------------------------------------------------------------------------------------------------------
   _get_isa_for_fields: ( dcl ) -> ( x ) ->
@@ -111,7 +127,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      warn 'Ω___4', rejection
+      warn 'Ω__11', rejection
       return false
     return true
 
@@ -122,14 +138,15 @@ class Type
     return ( R[ 0 ] ).toUpperCase() + R[ 1 .. ]
 
   #---------------------------------------------------------------------------------------------------------
-  _isaname_from_typename: ( typename = null ) ->
-    R = ( typename ? 'anonymous' )
-    return "isa_#{typename}"
+  _method_name_from_typename: ( methodname, typename = null ) ->
+    R = ( typename ? '(anonymous)' )
+    return "#{methodname}_#{typename}"
 
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    throw new Error "Ω___6 Cleartype_validation_error"
+    debug 'Ω__12', @
+    throw new Cleartype_validation_error "Ω__13 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
   isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
@@ -142,21 +159,21 @@ class Typespace
     ### TAINT name collisions possible ###
     for typename, dcl of dcls
       if Reflect.has @, typename
-        throw new Error "Ω___7 name collision: type / property #{rpr typename} already declared"
+        throw new Error "Ω__14 name collision: type / property #{rpr typename} already declared"
       @[ typename ] = type.create typename, dcl
     return null
 
 #===========================================================================================================
 type      = new Type()
 std       = new Typespace()
-std.type  = type
 
 #===========================================================================================================
 std.add_types
   #.........................................................................................................
   text:
     isa:      ( x ) -> ( Object::toString.call x ) is '[object String]'
-    create:   ( x ) -> x?.toString() ? ''
+    ### NOTE just returning argument which will be validated; only strings pass so `create value` is a no-op / validation only ###
+    create:   ( x ) -> return if ( arguments.length is 0 ) then '' else x
   #.........................................................................................................
   float:
     isa:      ( x ) -> Number.isFinite x
@@ -177,8 +194,7 @@ std.add_types
   nonempty_text:
     refines:  std.text
     # isa:      ( x ) -> ( std.text.isa x ) and ( x.length isnt 0 )
-    isa:      ( x ) -> ( x.length isnt 0 )
-    create:   ( x ) -> x?.toString() ? ''
+    isa:      ( x ) -> x.length isnt 0
   #.........................................................................................................
   quantity_q:
     refines:  std.float

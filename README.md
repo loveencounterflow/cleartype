@@ -28,6 +28,12 @@
 * **`[—]`** detect whether a type is either a <del>primitive</del> <ins>'fieldless type' (call it 'simple'
   to distinguish it from 'primitive')</ins> or else a POD (i.e. a 'compound' type); refuse to base a simple
   type on a compound type and vice versa
+  * observe that there can be types that do have properties but are not compound types, e.g. when a
+    `create()` method returns a set as in `d = mytype.create() -> new Set()` then `d` will have e.g. a
+    property `size`; still, one is generally not supposed to add or delete properties on instantiated values
+    or on JS `Array`s, so those count as simple types—leaving only PODs (i.e. values for which
+    `Object.getPrototypeOf()` returns either `null` or something that's represented as `{} [Object: null
+    prototype]` which is common to all direct derivatives of `Object`
   * **`[—]`** indicators for compoundness:
     * `dcl.fields` is a POD (or not a simple type)
     * `dcl.template` is a POD (or not a simple type)

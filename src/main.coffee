@@ -54,17 +54,7 @@ class Type
     Object.assign dcl, @_compile_fields   dcl
     Object.assign dcl, @_compile_template dcl
     Object.assign dcl, @_compile_isa      dcl
-    #.......................................................................................................
-    create = -> throw new Cleartype_creation_error "Ω___3 unable to create a #{dcl.name}"
-    if dcl.create?
-      validate gnd.function, dcl.create
-      create = do ( create = dcl.create                       ) -> ( P... ) -> @validate create.call @, P...
-    else if dcl.has_base and ( not dcl.has_fields )
-      create = do ( create = dcl.base.create, base =dcl.base  ) -> ( P... ) -> @validate create.call base, P...
-    ### TAINT provide create when there are fields but no create() ###
-    else if dcl.has_fields
-      debug 'Ω___4'
-    create = nameit ( @_method_name_from_typename 'create', dcl.name ), create
+    Object.assign dcl, @_compile_create   dcl
     #.......................................................................................................
     ### TAINT should we differentiate instance properties from prototype methods? ###
     clasz = class extends dcl.baseclass
@@ -75,6 +65,7 @@ class Type
         hide @, 'base',         dcl.base
         hide @, 'fields',       dcl.fields
         hide @, 'template',     dcl.template
+        hide @, 'get_template', dcl.get_template
         hide @, 'has_fields',   dcl.has_fields
         hide @, 'has_template', dcl.has_template
         hide @, 'has_base',     dcl.has_base
@@ -83,7 +74,7 @@ class Type
         return undefined
       #.....................................................................................................
       isa:          dcl.isa
-      create:       create
+      create:       dcl.create
     nameit ( @_classname_from_typename dcl.name ), clasz
     return new clasz()
 
@@ -134,6 +125,7 @@ class Type
     has_template  = false
     template      = Object.create null
     sources       = []
+    get_template  = -> throw new Cleartype_notemplate_error "Ω___5 type #{dcl.name} doesn't have a template"
     #.......................................................................................................
     if dcl.has_base and dcl.base.has_template
       sources.push base.template
@@ -153,7 +145,7 @@ class Type
     #     ### TIANT use API call ###
     #     template[ sub_name ]  = nameit "create_#{dcl.name}_#{sub_name}", producer
     # return { has_template, template, is_compound, }
-    return { has_template, template, }
+    return { has_template, template, get_template, }
 
   #---------------------------------------------------------------------------------------------------------
   _compile_isa: ( dcl ) ->
@@ -178,6 +170,20 @@ class Type
     return { isa, }
 
   #---------------------------------------------------------------------------------------------------------
+  _compile_create: ( dcl ) ->
+    create = -> throw new Cleartype_nocreate_error "Ω___8 unable to create a #{dcl.name}"
+    if dcl.create?
+      validate gnd.function, dcl.create
+      create = do ( create = dcl.create                       ) -> ( P... ) -> @validate create.call @, P...
+    else if dcl.has_base and ( not dcl.has_fields )
+      create = do ( create = dcl.base.create, base =dcl.base  ) -> ( P... ) -> @validate create.call base, P...
+    ### TAINT provide create when there are fields but no create() ###
+    else if dcl.has_fields
+      debug 'Ω___9'
+    create = nameit ( @_method_name_from_typename 'create', dcl.name ), create
+    return { create, }
+
+  #=========================================================================================================
   _get_isa_for_fields: ( dcl ) -> ( x ) ->
     return false unless x?
     ### TAINT in the future, should allow extending e.g. lists with fields? ###

@@ -97,7 +97,7 @@ class Type
     if dcl.base?
       unless ( dcl.base instanceof @constructor )
         ### TAINT use `type_of()` ###
-        throw new Error "Ω___6 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
+        throw new Error "Ω___3 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
       has_base  = true
       ### NOTE redundant here but needed when we allow typenames for base ###
       base      = dcl.base
@@ -119,7 +119,7 @@ class Type
       validate gnd.compound, dcl.fields
       sources.push dcl.fields
       if dcl.has_base and ( dcl.is_compound isnt true )
-        throw new Cleartype_kind_error "Ω___5 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+        throw new Cleartype_kind_mismatch_error "Ω___4 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
       is_compound = true
     #.......................................................................................................
     for source in sources
@@ -186,7 +186,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      # warn 'Ω___8', rejection
+      # warn 'Ω__10', rejection
       return false
     return true
 
@@ -204,7 +204,7 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    throw new Cleartype_validation_error "Ω___9 validation error: expected a #{@name}, got a #{type_of x}"
+    throw new Cleartype_type_validation_error "Ω__11 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
   isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
@@ -217,7 +217,7 @@ class Typespace
     ### TAINT name collisions possible ###
     for typename, dcl of dcls
       if Reflect.has @, typename
-        throw new Error "Ω__10 name collision: type / property #{rpr typename} already declared"
+        throw new Error "Ω__12 name collision: type / property #{rpr typename} already declared"
       @[ typename ] = type.create typename, dcl
     return null
 

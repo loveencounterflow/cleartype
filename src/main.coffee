@@ -142,7 +142,7 @@ class Type
     #   validate gnd.compound dcl.fields
     #   sources.push dcl.fields
     #   if has_base and ( is_compound isnt true )
-    #     throw new Cleartype_kind_error "Ω___5 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+    #     throw new Cleartype_kind_mismatch_error "Ω___6 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
     #   is_compound = true
     # #.......................................................................................................
     # for source in [ base?.template, dcl.template, ]

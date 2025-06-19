@@ -241,6 +241,11 @@ std.add_types
     isa:      ( x ) -> Number.isInteger x
     create:   ( n = 0 ) -> if x? then ( parseInt n, 10 ) else 0
     template: 0
+  #.........................................................................................................
+  list:
+    isa:      ( x ) -> Array.isArray x
+    # create:   ( n = 0 ) -> if x? then ( parseInt n, 10 ) else 0
+    template: -> []
 #-----------------------------------------------------------------------------------------------------------
 std.add_types
   ###

@@ -21,17 +21,18 @@ internals = new class Internals then constructor: ->
   return undefined
 
 #===========================================================================================================
-class Cleartype_error extends Error
+class Cleartype_error                       extends Error
 class Cleartype_arguments_not_allowed_error extends Cleartype_error
-class Cleartype_validation_error extends Cleartype_error
-class Cleartype_kind_error extends Cleartype_error
-class Cleartype_creation_error extends Cleartype_error
+class Cleartype_type_validation_error       extends Cleartype_error
+class Cleartype_kind_mismatch_error         extends Cleartype_error
+class Cleartype_nocreate_error              extends Cleartype_error
+class Cleartype_notemplate_error            extends Cleartype_error
 
 
 #===========================================================================================================
 validate = ( type, x ) ->
   return x if type.isa x
-  throw new Cleartype_validation_error "Ω___1 expected a #{type.name}, got a #{type_of x}"
+  throw new Cleartype_type_validation_error "Ω___1 expected a #{type.name}, got a #{type_of x}"
 
 #===========================================================================================================
 class Type

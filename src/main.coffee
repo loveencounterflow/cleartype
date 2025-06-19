@@ -16,7 +16,13 @@
 
 
 #===========================================================================================================
+internals = new class Internals then constructor: ->
+  @gnd  = gnd
+  return undefined
+
+#===========================================================================================================
 class Cleartype_error extends Error
+class Cleartype_arguments_not_allowed_error extends Cleartype_error
 class Cleartype_validation_error extends Cleartype_error
 class Cleartype_creation_error extends Cleartype_error
 
@@ -30,10 +36,10 @@ validate = ( type, x ) ->
 class Type
 
   #---------------------------------------------------------------------------------------------------------
-  constructor: ( dcl = null ) ->
-    throw new Error "Ω___2 not allowed" if dcl?
+  constructor: ->
+    throw new Cleartype_arguments_not_allowed_error "Ω___2 arguments not allowed" if arguments.length isnt 0
     bind_instance_methods @
-    @name = @constructor.name.toLowerCase()
+    hide @, 'name', @constructor.name.toLowerCase()
     return undefined
 
   #---------------------------------------------------------------------------------------------------------
@@ -41,46 +47,65 @@ class Type
     ### TAINT should wrap b/c of names? ###
     return dcl if dcl instanceof @constructor
     #.......................................................................................................
-    { has_fields, fields,             } =    @_fields_from_dcl  dcl
     { is_extension, base, baseclass,  } = @_extension_from_dcl  dcl
+    { has_fields, fields,             } =    @_compile_fields { typename, dcl, base, }
+    { has_template, template,         } =  @_compile_template { typename, dcl, base, fields, }
     isa                                 =       @_isa_from_dcl  dcl, { has_fields, is_extension, typename, }
     #.......................................................................................................
-    debug 'Ω___3', 'create', typename, base, baseclass
+    create = -> throw new Cleartype_creation_error "Ω___8 unable to create a #{typename}"
     if dcl.create?
-      debug 'Ω___4', 'create', typename
-      debug 'Ω___5', dcl.create.toString() if typename is 'text'
       validate gnd.function, dcl.create
       create = do ( create = dcl.create       ) -> ( P... ) -> @validate create.call @, P...
-    ### TAINT this must be properly resolved (with inheritance?) ###
-    else if is_extension
-      debug 'Ω___6', base.create.toString() if typename is 'nonempty_text'
+    else if is_extension and ( not has_fields )
       create = do ( create = base.create     ) -> ( P... ) -> @validate create.call base, P...
-    else
-      debug 'Ω___7', 'create', typename
-      create = -> throw new Cleartype_creation_error "Ω___8 unable to create a #{typename}"
     ### TAINT provide create when there are fields but no create() ###
+    else if has_fields
+      debug 'Ω__10'
     create = nameit ( @_method_name_from_typename 'create', typename ), create
     #.......................................................................................................
+    ### TAINT should we differentiate instance properties from prototype methods? ###
     clasz = class extends baseclass
-      name:         typename
-      # refines:      dcl.refines
+      #.....................................................................................................
+      constructor: ( P... ) ->
+        super P...
+        hide @, 'name',         typename
+        hide @, 'base',         dcl.base
+        hide @, 'fields',       fields
+        hide @, 'template',     template
+        hide @, 'has_fields',   has_fields
+        hide @, 'has_template', has_template
+        hide @, 'is_extension', is_extension
+        return undefined
+      #.....................................................................................................
       isa:          isa
       create:       create
-      fields:       fields
-      has_fields:   has_fields
-      is_extension: is_extension
     nameit ( @_classname_from_typename typename ), clasz
     return new clasz()
 
   #---------------------------------------------------------------------------------------------------------
-  _fields_from_dcl: ( dcl ) ->
+  _compile_fields: ({ typename, dcl, base, }) ->
     has_fields  = false
     fields      = Object.create null
-    if dcl.fields?
-      for sub_typename, sub_type of dcl.fields
-        has_fields              = true
-        fields[ sub_typename ]  = sub_type
+    ### TAINT missing validate gnd.pod, fields ###
+    for source in [ base?.fields, dcl.fields, ]
+      for sub_name, sub_field of ( source ? {} )
+        has_fields          = true
+        fields[ sub_name ]  = sub_field
     return { has_fields, fields, }
+
+  #---------------------------------------------------------------------------------------------------------
+  _compile_template: ({ typename, dcl, base, fields, }) ->
+    has_template  = false
+    template      = Object.create null
+    ### TAINT missing validate gnd.pod, template ###
+    for source in [ base?.template, dcl.template, ]
+      for sub_name, sub_template of ( source ? {} )
+        has_template          = true
+        producer              = if ( gnd.function.isa sub_template ) then sub_template else \
+          do ( value = sub_template ) -> -> sub_template
+        ### TIANT use API call ###
+        template[ sub_name ]  = nameit "create_#{typename}_#{sub_name}", producer
+    return { has_template, template, }
 
   #---------------------------------------------------------------------------------------------------------
   _extension_from_dcl: ( dcl ) ->
@@ -88,13 +113,13 @@ class Type
     baseclass     = @constructor
     base    = null
     ### TAINT condition should use API like 'has_property_but_value_isnt_null()' (?name?) ###
-    if ( Reflect.has dcl, 'refines' ) and ( dcl.refines isnt null )
-      unless ( dcl.refines instanceof @constructor )
+    if ( Reflect.has dcl, 'base' ) and ( dcl.base isnt null )
+      unless ( dcl.base instanceof @constructor )
         ### TAINT use `type_of()` ###
-        throw new Error "Ω___9 dcl.refines must be instanceof #{rpr @}, got #{rpr dcl.refines}"
+        throw new Error "Ω___9 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
       is_extension  = true
-      base    = dcl.refines
-      baseclass     = dcl.refines.constructor
+      base    = dcl.base
+      baseclass     = dcl.base.constructor
     return { is_extension, base, baseclass, }
 
   #---------------------------------------------------------------------------------------------------------
@@ -110,11 +135,11 @@ class Type
         isa = @_get_isa_for_fields dcl
       else
         unless is_extension
-          throw new Error "Ω__10 type declaration must have one of 'fields', 'isa' or 'refines' properties, got none"
+          throw new Error "Ω__10 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
         isa = ( x ) -> true
     #.......................................................................................................
     if is_extension
-      isa = do ( base = dcl.refines, isa ) -> ( x ) -> ( base.isa x ) and ( isa.call @, x )
+      isa = do ( base = dcl.base, isa ) -> ( x ) -> ( base.isa x ) and ( isa.call @, x )
     #.......................................................................................................
     return nameit ( @_method_name_from_typename 'isa', typename ), isa
 
@@ -127,7 +152,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      warn 'Ω__11', rejection
+      # warn 'Ω__11', rejection
       return false
     return true
 
@@ -145,7 +170,6 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    debug 'Ω__12', @
     throw new Cleartype_validation_error "Ω__13 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
@@ -171,7 +195,7 @@ std       = new Typespace()
 std.add_types
   #.........................................................................................................
   text:
-    isa:      ( x ) -> ( Object::toString.call x ) is '[object String]'
+    isa:      ( x ) -> ( typeof x ) is 'string' # ( Object::toString.call x ) is '[object String]'
     ### NOTE just returning argument which will be validated; only strings pass so `create value` is a no-op / validation only ###
     create:   ( x ) -> return if ( arguments.length is 0 ) then '' else x
   #.........................................................................................................
@@ -182,6 +206,7 @@ std.add_types
   integer:
     isa:      ( x ) -> Number.isInteger x
     create:   ( n = 0 ) -> if x? then ( parseInt n, 10 ) else 0
+    template: 0
 #-----------------------------------------------------------------------------------------------------------
 std.add_types
   ###
@@ -192,28 +217,35 @@ std.add_types
   ###
   #.........................................................................................................
   nonempty_text:
-    refines:  std.text
+    base:  std.text
     # isa:      ( x ) -> ( std.text.isa x ) and ( x.length isnt 0 )
     isa:      ( x ) -> x.length isnt 0
   #.........................................................................................................
   quantity_q:
-    refines:  std.float
+    base:  std.float
     # isa: std.float.isa
 #-----------------------------------------------------------------------------------------------------------
 std.add_types
   #.........................................................................................................
   quantity_u:
-    refines:  std.nonempty_text
+    base:  std.nonempty_text
 #-----------------------------------------------------------------------------------------------------------
 std.add_types
   #.........................................................................................................
   quantity:
-    create:   ( cfg ) -> { q: 0, u: 'u', cfg..., }
+    # create:   ( cfg ) -> { q: 0, u: 'u', cfg..., }
     fields:
       q:      std.quantity_q
       u:      std.quantity_u
-
+  #.........................................................................................................
+  quantity_with_template:
+    # create:   ( cfg ) -> { q: 0, u: 'u', cfg..., }
+    fields:
+      q:      std.quantity_q
+      u:      std.quantity_u
+    template:
+      q:      'u'
 
 #===========================================================================================================
-module.exports = { std, type_of, Type, Typespace, }
+module.exports = { std, type_of, Type, Typespace, internals, }
 

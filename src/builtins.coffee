@@ -4,19 +4,26 @@
 #-----------------------------------------------------------------------------------------------------------
 primitive_types = Object.freeze [ 'null', 'undefined', 'infinity', 'boolean', 'nan', 'float', 'anyfloat', 'text', ]
 ct_kinds        = Object.freeze [ '$unspecified', '$enumeration', '$record', '$variant', ]
-
+pod_prototypes  = Object.freeze [ null, ( Object.getPrototypeOf {} ), ]
 
 
 #===========================================================================================================
 gnd =
   anything:       isa: ( x ) -> true
   primitive:      isa: ( x ) -> primitive_types.includes type_of x
+  #.........................................................................................................
+  ### NOTE types 'simple' and 'compound' more or less boil down to x being a POD, their explicit definition
+  are for clarity and to allow for later modification ###
+  simple:         isa: ( x ) -> ( not x? ) or ( not gnd.compound.isa x )
+  compound:       isa: ( x ) -> gnd.pod.isa x
+  #.........................................................................................................
   boolean:        isa: ( x ) -> ( x is true ) or ( x is false )
   function:       isa: ( x ) -> ( Object::toString.call x ) is '[object Function]'
   asyncfunction:  isa: ( x ) -> ( Object::toString.call x ) is '[object AsyncFunction]'
   symbol:         isa: ( x ) -> ( typeof x ) is 'symbol'
   object:         isa: ( x ) -> x? and ( typeof x is 'object' ) and ( ( Object::toString.call x ) is '[object Object]' )
-  pod:            isa: ( x ) -> x? and x.constructor in [ Object, undefined, ]
+  # pod:            isa: ( x ) -> x? and x.constructor in [ Object, undefined, ]
+  pod:            isa: ( x ) -> x? and ( Object.getPrototypeOf x ) in pod_prototypes
   float:          isa: ( x ) -> Number.isFinite x
   integer:        isa: ( x ) -> Number.isInteger x
   text:           isa: ( x ) -> ( typeof x ) is 'string'

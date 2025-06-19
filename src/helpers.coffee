@@ -1,6 +1,9 @@
 
 'use strict'
 
+#===========================================================================================================
+isa_function              = ( require './builtins' ).gnd.function.isa
+
 # #===========================================================================================================
 # @bind_proto = ( that, f ) -> that::[ f.name ] = f.bind that::
 
@@ -16,7 +19,6 @@ nameit = ( name, f ) -> Object.defineProperty f, 'name', { value: name, }; f
 
 #===========================================================================================================
 get_instance_methods = ( instance ) ->
-  isa_function  = ( require './builtins' ).std.function.$isa
   R             = {}
   for key, { value: method, } of Object.getOwnPropertyDescriptors instance
     continue if key is 'constructor'

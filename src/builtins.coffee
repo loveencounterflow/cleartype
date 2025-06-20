@@ -42,7 +42,7 @@ gnd =
     isa:                ( x ) -> x? and ( Object.getPrototypeOf x ) in pod_prototypes
     get_template:             -> Object.create null
   nullo:          isa:  ( x ) -> ( Object.getPrototypeOf x ) is null
-  type:           isa:  ( x ) -> x? and x instanceof ( require './main' ).Type
+  type:           isa:  ( x ) -> x instanceof ( require './main' ).Type
   dcl_field:      isa:  ( x ) -> gnd.type.isa x
   #.........................................................................................................
   dcl:

@@ -135,25 +135,43 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   _compile_template: ( dcl ) ->
-    has_template  = Reflect.has dcl, 'template'
-    template      = Object.create null
-    sources       = []
-    get_template  = -> throw new E.Cleartype_notemplate_error "Ω___6 type #{dcl.name} doesn't have a template"
+    dcl_has_template  = Reflect.has dcl, 'template'
+    base_has_template = dcl.has_base and dcl.base.has_template
+    has_template      = dcl_has_template or base_has_template
+    template          = null
+    get_template      = -> throw new E.Cleartype_notemplate_error "Ωct___4 type #{dcl.name} doesn't have a template"
     #.......................................................................................................
-    if has_template
-      if gnd.function.isa dcl.template
-        # debug 'Ω___7', dcl.name, "_compile_template"
-        template      = dcl.template
-        get_template  = -> template.call @
-      #.......................................................................................................
-      else if gnd.simple.isa dcl.template
-        # debug 'Ω___8', dcl.name, "_compile_template", rpr dcl.template
-        template      = dcl.template
-        get_template  = -> template
+    switch dcl.kind
+      #.....................................................................................................
+      when 'simple'
+        if dcl_has_template
+          if gnd.function.isa dcl.template
+            template      = dcl.template
+            get_template  = -> template.call @
+          #.......................................................................................................
+          else if gnd.simple.isa dcl.template
+            template      = dcl.template
+            get_template  = -> template
+        else if base_has_template
+          get_template = do -> ( base = dcl.base ) -> base.get_template()
+      #.....................................................................................................
+      when 'compound'
+        template      = Object.create null
+        if base_has_template
+          Object.assign template, base.get_template()...
+        if dcl_has_template
+          ### TAINT this should be done in pre-checks ###
+          validate gnd.pod, dcl.template
+          for field_name, value of dcl.template
+            template[ field_name ] = value
+        null
+      #.....................................................................................................
+      else
+        throw new E.Cleartype_internal_error "Ωct___5 should never happen: encountered dcl.kind: #{rpr dcl.kind}"
     #.......................................................................................................
-    else if dcl.has_base and dcl.base.has_template
-      sources.push dcl.base.template
+    # else if dcl.has_base and dcl.base.has_template
     #   # debug 'Ωct___8', dcl.name, "_compile_template"
+    #   sources.push dcl.base.template
     # #.......................................................................................................
     # if dcl.template?
     #   validate gnd.compound dcl.fields

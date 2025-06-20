@@ -2,7 +2,7 @@
   "name": "cleartype",
   "version": "0.0.8",
   "description": "",
-  "main": "lib/main.js",
+  "main": "lib/exports.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

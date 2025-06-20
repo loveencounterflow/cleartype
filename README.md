@@ -73,6 +73,10 @@
     that gets compiled from that declaration, an empty `t.fields` object indicates the *absence* of fields
     (and should be used in conjunction with `t.has_fields`)
 
+* **`[—]`** refactor `dcl.fields` and especially `dcl.template` into classes `Fields`, `Template` (maybe
+  `Simple_template`, `Compound_template`)? Use composition for the template value so we can have a null
+  object?
+
 * ??? **`[—]`** ??? put typespaces in `builtins` into object `typespaces`?
 * ??? **`[—]`** ??? it should be possible to use arbitrary field names in the declaration
 * ??? **`[—]`** ??? types are anonymous

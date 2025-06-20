@@ -28,7 +28,7 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   constructor: ->
-    throw new E.Cleartype_arguments_not_allowed_error "Ω___2 arguments not allowed" if arguments.length isnt 0
+    throw new E.Cleartype_arguments_not_allowed_error "Ωct___1 arguments not allowed" if arguments.length isnt 0
     bind_instance_methods @
     hide @, 'name', @constructor.name.toLowerCase()
     return undefined
@@ -78,7 +78,7 @@ class Type
     if dcl.base?
       unless ( dcl.base instanceof @constructor )
         ### TAINT use `type_of()` ###
-        throw new Error "Ω___3 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
+        throw new Error "Ωct___2 dcl.base must be instanceof #{rpr @}, got #{rpr dcl.base}"
       has_base  = true
       ### NOTE redundant here but needed when we allow typenames for base ###
       base      = dcl.base
@@ -107,7 +107,7 @@ class Type
       kind_reason = kind_reason.replace /_/g,        '.'
       hint_reason = hint_reason.replace /acc_to_/g,  ''
       hint_reason = hint_reason.replace /_/g,        '.'
-      throw new E.Cleartype_kind_mismatch_error "Ω___4 according to #{dcl.name}.#{kind_reason}, " + \
+      throw new E.Cleartype_kind_mismatch_error "Ωct___3 according to #{dcl.name}.#{kind_reason}, " + \
         "the kind of #{dcl.name} is #{rpr kind}, but according to #{dcl.name}.#{hint_reason}, " + \
         "the kind of #{dcl.name} is #{rpr hint}"
     #.......................................................................................................
@@ -152,14 +152,14 @@ class Type
         get_template  = -> template
     #.......................................................................................................
     else if dcl.has_base and dcl.base.has_template
-      # debug 'Ω___9', dcl.name, "_compile_template"
       sources.push dcl.base.template
+    #   # debug 'Ωct___8', dcl.name, "_compile_template"
     # #.......................................................................................................
     # if dcl.template?
     #   validate gnd.compound dcl.fields
     #   sources.push dcl.fields
     #   if has_base and ( kind isnt true )
-    #     throw new E.Cleartype_kind_mismatch_error "Ω__10 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
+    #     throw new E.Cleartype_kind_mismatch_error "Ωct___9 type #{dcl.name} is declared as a compound type kind but its base #{base.name} isn't"
     #   kind = true
     # #.......................................................................................................
     # for source in [ base?.template, dcl.template, ]
@@ -186,7 +186,7 @@ class Type
         isa = @_get_isa_for_fields dcl
       else
         unless dcl.has_base
-          throw new Error "Ω__11 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
+          throw new Error "Ωct__10 type declaration must have one of 'fields', 'isa' or 'base' properties, got none"
         isa = ( x ) -> true
     #.......................................................................................................
     if dcl.has_base
@@ -197,7 +197,7 @@ class Type
 
   #---------------------------------------------------------------------------------------------------------
   _compile_create: ( dcl ) ->
-    create = -> throw new E.Cleartype_nocreate_error "Ω__12 unable to create a #{dcl.name}"
+    create = -> throw new E.Cleartype_nocreate_error "Ωct__11 unable to create a #{dcl.name}"
     if dcl.create?
       validate gnd.function, dcl.create
       create = do ( create = dcl.create                       ) -> ( P... ) -> @validate create.call @, P...
@@ -205,7 +205,7 @@ class Type
       create = do ( create = dcl.base.create, base =dcl.base  ) -> ( P... ) -> @validate create.call base, P...
     ### TAINT provide create when there are fields but no create() ###
     else if dcl.has_fields
-      debug 'Ω__13'
+      debug 'Ωct__12'
     create = nameit ( @_method_name_from_typename 'create', dcl.name ), create
     return { create, }
 
@@ -218,7 +218,7 @@ class Type
       continue if subtype.isa x[ field_name ]
       ### TAINT use type_of ###
       rejection = "expected a #{subtype.name} for field #{rpr field_name}, got #{rpr x[ field_name ]}"
-      # warn 'Ω__14', rejection
+      # warn 'Ωct__13', rejection
       return false
     return true
 
@@ -236,7 +236,7 @@ class Type
   #---------------------------------------------------------------------------------------------------------
   validate: ( x ) ->
     return x if @isa x
-    throw new E.Cleartype_type_validation_error "Ω__15 validation error: expected a #{@name}, got a #{type_of x}"
+    throw new E.Cleartype_type_validation_error "Ωct__14 validation error: expected a #{@name}, got a #{type_of x}"
 
   #---------------------------------------------------------------------------------------------------------
   isa: nameit 'isa_type', ( x ) -> x instanceof @constructor
@@ -249,7 +249,7 @@ class Typespace
     ### TAINT name collisions possible ###
     for typename, dcl of dcls
       if Reflect.has @, typename
-        throw new Error "Ω__16 name collision: type / property #{rpr typename} already declared"
+        throw new Error "Ωct__15 name collision: type / property #{rpr typename} already declared"
       @[ typename ] = type.create typename, dcl
     return null
 

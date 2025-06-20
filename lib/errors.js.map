@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "",
+  "sourceRoot": "",
+  "sources": [
+    "../src/errors.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA;AAAA,MAAA,qCAAA,EAAA,eAAA,EAAA,6BAAA,EAAA,wBAAA,EAAA,0BAAA,EAAA,+BAAA;;;EAGM,kBAAN,MAAA,gBAAA,QAAoD,MAApD,CAAA;;EACM,wCAAN,MAAA,sCAAA,QAAoD,gBAApD,CAAA;;EACM,kCAAN,MAAA,gCAAA,QAAoD,gBAApD,CAAA;;EACM,gCAAN,MAAA,8BAAA,QAAoD,gBAApD,CAAA;;EACM,2BAAN,MAAA,yBAAA,QAAoD,gBAApD,CAAA;;EACM,6BAAN,MAAA,2BAAA,QAAoD,gBAApD,CAAA,EARA;;;EAWA,MAAM,CAAC,OAAP,GAAiB,CACf,eADe,EAEf,qCAFe,EAGf,+BAHe,EAIf,6BAJe,EAKf,wBALe,EAMf,0BANe;AAXjB",
+  "sourcesContent": [
+    "\n'use strict'\n\n#===========================================================================================================\nclass Cleartype_error                       extends Error\nclass Cleartype_arguments_not_allowed_error extends Cleartype_error\nclass Cleartype_type_validation_error       extends Cleartype_error\nclass Cleartype_kind_mismatch_error         extends Cleartype_error\nclass Cleartype_nocreate_error              extends Cleartype_error\nclass Cleartype_notemplate_error            extends Cleartype_error\n\n#===========================================================================================================\nmodule.exports = { \n  Cleartype_error\n  Cleartype_arguments_not_allowed_error\n  Cleartype_type_validation_error\n  Cleartype_kind_mismatch_error\n  Cleartype_nocreate_error\n  Cleartype_notemplate_error }\n"
+  ]
+}

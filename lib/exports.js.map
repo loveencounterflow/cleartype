@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "",
+  "sourceRoot": "",
+  "sources": [
+    "../src/exports.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA;AAAA,MAAA,IAAA,EAAA,SAAA,EAAA,SAAA,EAAA,GAAA,EAAA,OAAA;;;EAGA,CAAA,CAAE,OAAF,EACE,IADF,EAEE,SAFF,EAGE,SAHF,CAAA,GAG4B,OAAA,CAAQ,QAAR,CAH5B,EAHA;;;EAQA,CAAA,CAAE,GAAF,CAAA,GAA4B,OAAA,CAAQ,OAAR,CAA5B,EARA;;;EAWA,MAAM,CAAC,OAAP,GAAiB,CAAE,OAAF,EAAW,IAAX,EAAiB,SAAjB,EAA4B,SAA5B,EAAuC,GAAvC;AAXjB",
+  "sourcesContent": [
+    "\n'use strict'\n\n#===========================================================================================================\n{ type_of\n  Type\n  Typespace\n  internals             } = require './main'\n#-----------------------------------------------------------------------------------------------------------\n{ std                   } = require './std'\n\n#===========================================================================================================\nmodule.exports = { type_of, Type, Typespace, internals, std, }"
+  ]
+}
